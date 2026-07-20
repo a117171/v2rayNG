@@ -1,13 +1,11 @@
 package com.v2ray.ang.viewmodel
 
+import android.app.Application
 import android.content.Context
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.AppConfig.ANG_PACKAGE
 import com.v2ray.ang.dto.AppInfo
 import com.v2ray.ang.dto.UrlContentRequest
-import com.v2ray.ang.extension.v2RayApplication
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.SettingsChangeManager
 import com.v2ray.ang.handler.SettingsManager
@@ -19,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.Collator
 
@@ -27,16 +24,13 @@ import java.text.Collator
  * ViewModel for PerAppProxy screen.
  * Holds all UI state and business logic.
  */
-class PerAppProxyViewModel : ViewModel() {
+class PerAppProxyViewModel(application: Application) : BaseViewModel(application) {
 
     // Blacklist (apps to be proxied or bypassed)
     private val _blacklist = MutableStateFlow(loadBlacklist())
     val blacklist: StateFlow<Set<String>> = _blacklist.asStateFlow()
 
     // UI states
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
     private val _displayedApps = MutableStateFlow<List<AppInfo>>(emptyList())
     val displayedApps: StateFlow<List<AppInfo>> = _displayedApps.asStateFlow()
 
@@ -129,8 +123,7 @@ class PerAppProxyViewModel : ViewModel() {
 
     // Load and filter apps
     fun loadApps(context: Context) {
-        viewModelScope.launch {
-            _isLoading.value = true
+        launchLoading {
             try {
                 val apps = withContext(Dispatchers.IO) {
                     val list = AppManagerUtil.loadNetworkAppList(context)
@@ -140,8 +133,6 @@ class PerAppProxyViewModel : ViewModel() {
                 _displayedApps.value = apps
             } catch (e: Exception) {
                 LogUtil.e(ANG_PACKAGE, "Error loading apps", e)
-            } finally {
-                _isLoading.value = false
             }
         }
     }
@@ -187,8 +178,7 @@ class PerAppProxyViewModel : ViewModel() {
     }
 
     fun selectProxyAppAuto(context: Context) {
-        viewModelScope.launch {
-            _isLoading.value = true
+        launchLoading {
             val url = AppConfig.ANDROID_PACKAGE_NAME_LIST_URL
             var content = withContext(Dispatchers.IO) {
                 HttpUtil.getUrlContent(
@@ -218,7 +208,6 @@ class PerAppProxyViewModel : ViewModel() {
             if (success) {
                 enablePerAppProxyAndRestart()
             }
-            _isLoading.value = false
         }
     }
 

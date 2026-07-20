@@ -1,6 +1,6 @@
 package com.v2ray.ang.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.UrlContentRequest
 import com.v2ray.ang.dto.entities.AssetUrlCache
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 
-class UserAssetViewModel : ViewModel() {
+class UserAssetViewModel(application: Application) : BaseViewModel(application) {
     private val assets = mutableListOf<AssetUrlCache>()
     private val builtInGeoFiles = listOf(AppConfig.GEOSITE_DAT, AppConfig.GEOIP_DAT, AppConfig.GEOIP_ONLY_CN_PRIVATE_DAT)
 
